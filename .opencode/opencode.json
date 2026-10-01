@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": true,
+  "autoupdate": true,
+  "model": "Nemotron 3 Ultra Free",
+  "default_agent": "plan"
+
+}
