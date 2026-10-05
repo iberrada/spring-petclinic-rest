@@ -1,10 +1,12 @@
 CREATE TABLE IF NOT EXISTS vets (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   first_name VARCHAR(30) NOT NULL,
-  last_name VARCHAR(30) NOT NULL
+  last_name VARCHAR(30) NOT NULL,
+  email VARCHAR(255)
 );
 
 CREATE INDEX idx_vets_last_name ON vets(last_name);
+CREATE INDEX idx_vets_email ON vets(email);
 
 CREATE TABLE IF NOT EXISTS specialties (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -34,10 +36,12 @@ CREATE TABLE IF NOT EXISTS owners (
   last_name VARCHAR(30) NOT NULL,
   address VARCHAR(255) NOT NULL,
   city VARCHAR(80) NOT NULL,
-  telephone VARCHAR(20) NOT NULL
+  telephone VARCHAR(20) NOT NULL,
+  email VARCHAR(255)
 );
 
 CREATE INDEX idx_owners_last_name ON owners(last_name);
+CREATE INDEX idx_owners_email ON owners(email);
 
 CREATE TABLE IF NOT EXISTS pets (
   id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -58,6 +62,29 @@ CREATE TABLE IF NOT EXISTS visits (
   description VARCHAR(255) NOT NULL,
   FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS medical_reports (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  visit_id INTEGER NOT NULL,
+  author_vet_id INTEGER NOT NULL,
+  shared_with_vet_id INTEGER,
+  diagnosis TEXT,
+  treatment TEXT,
+  notes TEXT,
+  report_date DATE NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finalized_at TIMESTAMP,
+  shared_at TIMESTAMP,
+  FOREIGN KEY (visit_id) REFERENCES visits(id) ON DELETE CASCADE,
+  FOREIGN KEY (author_vet_id) REFERENCES vets(id) ON DELETE RESTRICT,
+  FOREIGN KEY (shared_with_vet_id) REFERENCES vets(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_mr_visit ON medical_reports(visit_id);
+CREATE INDEX idx_mr_author_vet ON medical_reports(author_vet_id);
+CREATE INDEX idx_mr_shared_vet ON medical_reports(shared_with_vet_id);
+CREATE INDEX idx_mr_status ON medical_reports(status);
 
 CREATE TABLE IF NOT EXISTS users (
   username VARCHAR(20) NOT NULL PRIMARY KEY,

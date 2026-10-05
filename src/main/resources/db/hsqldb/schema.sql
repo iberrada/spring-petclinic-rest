@@ -1,3 +1,4 @@
+DROP TABLE medical_reports IF EXISTS;
 DROP TABLE vet_specialties IF EXISTS;
 DROP TABLE vets IF EXISTS;
 DROP TABLE specialties IF EXISTS;
@@ -12,9 +13,11 @@ DROP TABLE users IF EXISTS;
 CREATE TABLE vets (
   id         INTEGER IDENTITY PRIMARY KEY,
   first_name VARCHAR(30),
-  last_name  VARCHAR(30)
+  last_name  VARCHAR(30),
+  email      VARCHAR(255)
 );
 CREATE INDEX vets_last_name ON vets (last_name);
+CREATE INDEX vets_email ON vets (email);
 
 CREATE TABLE specialties (
   id   INTEGER IDENTITY PRIMARY KEY,
@@ -41,9 +44,11 @@ CREATE TABLE owners (
   last_name  VARCHAR_IGNORECASE(30),
   address    VARCHAR(255),
   city       VARCHAR(80),
-  telephone  VARCHAR(20)
+  telephone  VARCHAR(20),
+  email      VARCHAR(255)
 );
 CREATE INDEX owners_last_name ON owners (last_name);
+CREATE INDEX owners_email ON owners (email);
 
 CREATE TABLE pets (
   id         INTEGER IDENTITY PRIMARY KEY,
@@ -64,6 +69,28 @@ CREATE TABLE visits (
 );
 ALTER TABLE visits ADD CONSTRAINT fk_visits_pets FOREIGN KEY (pet_id) REFERENCES pets (id);
 CREATE INDEX visits_pet_id ON visits (pet_id);
+
+CREATE TABLE medical_reports (
+  id                BIGINT IDENTITY PRIMARY KEY,
+  visit_id          INTEGER NOT NULL,
+  author_vet_id     INTEGER NOT NULL,
+  shared_with_vet_id INTEGER,
+  diagnosis         LONGVARCHAR,
+  treatment         LONGVARCHAR,
+  notes             LONGVARCHAR,
+  report_date       DATE NOT NULL,
+  status            VARCHAR(20) NOT NULL,
+  created_at        TIMESTAMP NOT NULL,
+  finalized_at      TIMESTAMP,
+  shared_at         TIMESTAMP
+);
+ALTER TABLE medical_reports ADD CONSTRAINT fk_mr_visits FOREIGN KEY (visit_id) REFERENCES visits (id);
+ALTER TABLE medical_reports ADD CONSTRAINT fk_mr_author_vet FOREIGN KEY (author_vet_id) REFERENCES vets (id);
+ALTER TABLE medical_reports ADD CONSTRAINT fk_mr_shared_vet FOREIGN KEY (shared_with_vet_id) REFERENCES vets (id);
+CREATE INDEX mr_visit_id ON medical_reports (visit_id);
+CREATE INDEX mr_author_vet_id ON medical_reports (author_vet_id);
+CREATE INDEX mr_shared_vet_id ON medical_reports (shared_with_vet_id);
+CREATE INDEX mr_status ON medical_reports (status);
 
 CREATE  TABLE users (
   username    VARCHAR(20) NOT NULL ,

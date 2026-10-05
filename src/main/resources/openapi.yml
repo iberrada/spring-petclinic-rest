@@ -29,6 +29,8 @@ tags:
     description: Endpoints related to pet types.
   - name: specialties
     description: Endpoints related to vet specialties.
+  - name: medical-reports
+    description: Endpoints related to medical reports.
 paths:
   /oops:
     get:
@@ -1844,6 +1846,459 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports:
+    get:
+      tags:
+        - medical-reports
+      operationId: listMedicalReports
+      summary: List medical reports
+      description: Returns an array of medical reports.
+      parameters:
+        - name: visitId
+          in: query
+          description: Filter by visit ID.
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: authorVetId
+          in: query
+          description: Filter by author vet ID.
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          description: Filter by status.
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, FINALIZED, SHARED]
+      responses:
+        '200':
+          description: Medical reports found and returned.
+          headers:
+            ETag:
+              description: An ID for this version of the response.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MedicalReport'
+        '304':
+          description: Not modified.
+          headers:
+            ETag:
+              description: An ID for this version of the response.
+              schema:
+                type: string
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      tags:
+        - medical-reports
+      operationId: createMedicalReport
+      summary: Create a draft medical report
+      description: Creates a new draft medical report.
+      requestBody:
+        description: The medical report
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalReportFields'
+        required: true
+      responses:
+        '201':
+          description: The medical report was successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReport'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports/{reportId}:
+    get:
+      tags:
+        - medical-reports
+      operationId: getMedicalReport
+      summary: Get a medical report by ID
+      description: Returns the medical report or a 404 error.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      responses:
+        '200':
+          description: Medical report details found and returned.
+          headers:
+            ETag:
+              description: An ID for this version of the response.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReport'
+        '304':
+          description: Not modified.
+          headers:
+            ETag:
+              description: An ID for this version of the response.
+              schema:
+                type: string
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    put:
+      tags:
+        - medical-reports
+      operationId: updateMedicalReport
+      summary: Update a medical report by ID
+      description: Updates the medical report with the specified details. Only allowed for DRAFT reports.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      requestBody:
+        description: The medical report details to use for the update.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalReportFields'
+        required: true
+      responses:
+        '200':
+          description: Update successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReport'
+        '400':
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Cannot update non-DRAFT report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      tags:
+        - medical-reports
+      operationId: deleteMedicalReport
+      summary: Delete a medical report by ID
+      description: Deletes the medical report. Only allowed for DRAFT reports.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      responses:
+        '204':
+          description: Medical report deleted.
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Cannot delete non-DRAFT report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports/{reportId}/finalize:
+    post:
+      tags:
+        - medical-reports
+      operationId: finalizeMedicalReport
+      summary: Finalize a draft medical report
+      description: Finalizes a draft medical report. Only the author vet can finalize.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      responses:
+        '200':
+          description: Medical report finalized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReport'
+        '403':
+          description: Not authorized (not the author vet).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Report is not in DRAFT status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports/{reportId}/share:
+    post:
+      tags:
+        - medical-reports
+      operationId: shareMedicalReport
+      summary: Share a medical report with another vet
+      description: Shares a finalized medical report with another vet. Only the author vet can share.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      requestBody:
+        description: The recipient vet ID
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipientVetId:
+                  type: integer
+                  format: int32
+                  description: ID of the vet to share with
+              required:
+                - recipientVetId
+        required: true
+      responses:
+        '200':
+          description: Medical report shared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalReport'
+        '403':
+          description: Not authorized (not the author vet).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report or recipient vet not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Report is not in FINALIZED status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports/{reportId}/pdf:
+    get:
+      tags:
+        - medical-reports
+      operationId: generateMedicalReportPdf
+      summary: Generate PDF for printing
+      description: Generates a PDF version of the medical report for printing.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      responses:
+        '200':
+          description: PDF generated.
+          headers:
+            Content-Disposition:
+              description: Attachment filename
+              schema:
+                type: string
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /medical-reports/{reportId}/email:
+    post:
+      tags:
+        - medical-reports
+      operationId: emailMedicalReport
+      summary: Email medical report to owner
+      description: Emails the medical report to the pet owner. Requires owner email or override.
+      parameters:
+        - name: reportId
+          in: path
+          description: The ID of the medical report.
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            example: 1
+      requestBody:
+        description: Optional override email
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                overrideEmail:
+                  type: string
+                  format: email
+                  description: Optional email override
+        required: false
+      responses:
+        '200':
+          description: Email sent.
+        '400':
+          description: Owner has no email and no override provided, or invalid email format.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: Not authorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '404':
+          description: Medical report not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '409':
+          description: Report is not finalized or shared.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
   /users:
     post:
       tags:
@@ -2031,6 +2486,12 @@ components:
           maxLength: 20
           pattern: '^[0-9]*$'
           example: '6085551023'
+        email:
+          title: Email
+          description: The email of the pet owner.
+          type: string
+          format: email
+          example: 'george.franklin@example.com'
       required:
         - firstName
         - lastName
@@ -2230,6 +2691,12 @@ components:
           maxLength: 30
           pattern: "^[\\p{L}]+([ '-][\\p{L}]+){0,2}\\.?$"
           example: 'Carter'
+        email:
+          title: Email
+          description: The email of the vet.
+          type: string
+          format: email
+          example: 'james.carter@petclinic.com'
         specialties:
           title: Specialties
           description: The specialties of the vet.
@@ -2381,3 +2848,148 @@ components:
           example: admin
       required:
         - name
+    MedicalReportFields:
+      title: Medical Report fields
+      description: Editable fields of a medical report.
+      type: object
+      properties:
+        visitId:
+          title: Visit ID
+          description: The ID of the visit.
+          type: integer
+          format: int32
+          minimum: 0
+          example: 1
+        diagnosis:
+          title: Diagnosis
+          description: The medical diagnosis.
+          type: string
+        treatment:
+          title: Treatment
+          description: The treatment plan.
+          type: string
+        notes:
+          title: Notes
+          description: Additional notes.
+          type: string
+      required:
+        - visitId
+        - diagnosis
+        - treatment
+    MedicalReport:
+      title: Medical Report
+      description: A medical report.
+      allOf:
+        - $ref: '#/components/schemas/MedicalReportFields'
+        - type: object
+          properties:
+            id:
+              title: ID
+              description: The ID of the medical report.
+              type: integer
+              format: int64
+              minimum: 0
+              example: 1
+              readOnly: true
+            visitId:
+              title: Visit ID
+              description: The ID of the visit.
+              type: integer
+              format: int32
+              minimum: 0
+              example: 1
+              readOnly: true
+            authorVetId:
+              title: Author Vet ID
+              description: The ID of the author vet.
+              type: integer
+              format: int32
+              minimum: 0
+              example: 1
+              readOnly: true
+            sharedWithVetId:
+              title: Shared With Vet ID
+              description: The ID of the vet the report is shared with.
+              type: integer
+              format: int32
+              minimum: 0
+              example: 2
+              readOnly: true
+            status:
+              title: Status
+              description: The status of the medical report.
+              type: string
+              enum: [DRAFT, FINALIZED, SHARED]
+              readOnly: true
+            createdAt:
+              title: Created At
+              description: The date and time the report was created.
+              type: string
+              format: date-time
+              readOnly: true
+            finalizedAt:
+              title: Finalized At
+              description: The date and time the report was finalized.
+              type: string
+              format: date-time
+              readOnly: true
+            sharedAt:
+              title: Shared At
+              description: The date and time the report was shared.
+              type: string
+              format: date-time
+              readOnly: true
+            petName:
+              title: Pet Name
+              description: The name of the pet.
+              type: string
+              readOnly: true
+            petType:
+              title: Pet Type
+              description: The type of the pet.
+              type: string
+              readOnly: true
+            petBirthDate:
+              title: Pet Birth Date
+              description: The birth date of the pet.
+              type: string
+              format: date
+              readOnly: true
+            ownerName:
+              title: Owner Name
+              description: The name of the pet owner.
+              type: string
+              readOnly: true
+            ownerEmail:
+              title: Owner Email
+              description: The email of the pet owner.
+              type: string
+              format: email
+              readOnly: true
+            ownerPhone:
+              title: Owner Phone
+              description: The phone number of the pet owner.
+              type: string
+              readOnly: true
+            authorVetName:
+              title: Author Vet Name
+              description: The name of the author vet.
+              type: string
+              readOnly: true
+            authorVetEmail:
+              title: Author Vet Email
+              description: The email of the author vet.
+              type: string
+              format: email
+              readOnly: true
+            sharedWithVetName:
+              title: Shared With Vet Name
+              description: The name of the vet the report is shared with.
+              type: string
+              readOnly: true
+            sharedWithVetEmail:
+              title: Shared With Vet Email
+              description: The email of the vet the report is shared with.
+              type: string
+              format: email
+              readOnly: true

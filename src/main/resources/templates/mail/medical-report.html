@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #2c3e50; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .details { background-color: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .details h3 { margin-top: 0; color: #2c3e50; }
+        .detail-row { display: flex; margin: 8px 0; }
+        .detail-label { font-weight: bold; width: 150px; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 0.9em; }
+        .attachment-note { background-color: #e8f4fd; padding: 10px; border-radius: 5px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Spring PetClinic</h1>
+        <h2>Medical Report</h2>
+    </div>
+    
+    <div class="content">
+        <p>Dear Pet Owner,</p>
+        
+        <p>Please find attached the medical report for <strong th:text="${petName}">Pet Name</strong> 
+        prepared by <strong th:text="${vetName}">Veterinarian Name</strong>.</p>
+        
+        <div class="attachment-note">
+            <strong>📎 Attachment:</strong> The detailed medical report is attached as a PDF file.
+        </div>
+        
+        <div class="details">
+            <h3>Report Details</h3>
+            <div class="detail-row">
+                <span class="detail-label">Report ID:</span>
+                <span th:text="${report.id}">ID</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span th:text="${#temporals.format(reportDate, 'yyyy-MM-dd')}">Date</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status:</span>
+                <span th:text="${status}">Status</span>
+            </div>
+        </div>
+        
+        <p>If you have any questions about this report, please don't hesitate to contact our clinic.</p>
+        
+        <p>Best regards,<br>
+        <strong>Spring PetClinic Team</strong></p>
+    </div>
+    
+    <div class="footer">
+        <p>This is an automated message from Spring PetClinic.<br>
+        Please do not reply to this email.</p>
+    </div>
+</body>
+</html>

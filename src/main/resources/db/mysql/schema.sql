@@ -2,7 +2,9 @@ CREATE TABLE IF NOT EXISTS vets (
   id INT(4) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   first_name VARCHAR(30),
   last_name VARCHAR(30),
-  INDEX(last_name)
+  email VARCHAR(255),
+  INDEX(last_name),
+  INDEX(email)
 ) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS specialties (
@@ -32,7 +34,9 @@ CREATE TABLE IF NOT EXISTS owners (
   address VARCHAR(255),
   city VARCHAR(80),
   telephone VARCHAR(20),
-  INDEX(last_name)
+  email VARCHAR(255),
+  INDEX(last_name),
+  INDEX(email)
 ) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS pets (
@@ -52,6 +56,28 @@ CREATE TABLE IF NOT EXISTS visits (
   visit_date DATE,
   description VARCHAR(255),
   FOREIGN KEY (pet_id) REFERENCES pets(id)
+) engine=InnoDB;
+
+CREATE TABLE IF NOT EXISTS medical_reports (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  visit_id INT(4) UNSIGNED NOT NULL,
+  author_vet_id INT(4) UNSIGNED NOT NULL,
+  shared_with_vet_id INT(4) UNSIGNED,
+  diagnosis TEXT,
+  treatment TEXT,
+  notes TEXT,
+  report_date DATE NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  finalized_at TIMESTAMP NULL,
+  shared_at TIMESTAMP NULL,
+  INDEX(visit_id),
+  INDEX(author_vet_id),
+  INDEX(shared_with_vet_id),
+  INDEX(status),
+  FOREIGN KEY (visit_id) REFERENCES visits(id) ON DELETE CASCADE,
+  FOREIGN KEY (author_vet_id) REFERENCES vets(id) ON DELETE RESTRICT,
+  FOREIGN KEY (shared_with_vet_id) REFERENCES vets(id) ON DELETE SET NULL
 ) engine=InnoDB;
 
 CREATE TABLE IF NOT EXISTS users (

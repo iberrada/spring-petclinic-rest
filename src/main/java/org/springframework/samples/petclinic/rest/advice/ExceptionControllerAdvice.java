@@ -28,6 +28,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.samples.petclinic.exception.EmailSendException;
+import org.springframework.samples.petclinic.exception.InvalidStatusTransitionException;
+import org.springframework.samples.petclinic.exception.MedicalReportNotFoundException;
+import org.springframework.samples.petclinic.exception.UnauthorizedReportAccessException;
 import org.springframework.samples.petclinic.rest.controller.BindingErrorsResponse;
 import org.springframework.samples.petclinic.rest.dto.ValidationMessageDto;
 import org.springframework.validation.BindingResult;
@@ -147,4 +151,57 @@ public class ExceptionControllerAdvice {
         return ResponseEntity.status(status).body(detail);
     }
 
+    @ExceptionHandler(MedicalReportNotFoundException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleMedicalReportNotFoundException(MedicalReportNotFoundException e, HttpServletRequest request) {
+        logger.warn("Medical report not found at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), e.getMessage());
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleInvalidStatusTransitionException(InvalidStatusTransitionException e, HttpServletRequest request) {
+        logger.warn("Invalid status transition at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.CONFLICT;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), e.getMessage());
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    @ExceptionHandler(UnauthorizedReportAccessException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleUnauthorizedReportAccessException(UnauthorizedReportAccessException e, HttpServletRequest request) {
+        logger.warn("Unauthorized report access at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), e.getMessage());
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    @ExceptionHandler(EmailSendException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleEmailSendException(EmailSendException e, HttpServletRequest request) {
+        logger.error("Email send failed at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage(), e);
+        HttpStatus status = HttpStatus.BAD_GATEWAY;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), "Failed to send medical report email");
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
+        logger.warn("Invalid argument at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), e.getMessage());
+        return ResponseEntity.status(status).body(detail);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseBody
+    public ResponseEntity<ProblemDetail> handleIllegalStateException(IllegalStateException e, HttpServletRequest request) {
+        logger.warn("Illegal state at {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage());
+        HttpStatus status = HttpStatus.CONFLICT;
+        ProblemDetail detail = this.detailBuild(e, status, request.getRequestURL(), e.getMessage());
+        return ResponseEntity.status(status).body(detail);
+    }
 }
